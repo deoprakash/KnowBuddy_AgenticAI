@@ -5,9 +5,10 @@ from datetime import datetime
 from dotenv import load_dotenv
 import streamlit as st
 from langchain_groq import ChatGroq
-from langchain_community.tools import DuckDuckGoSearchRun
 from fpdf import FPDF
 from random import shuffle
+from googlesearch import search  # ✅ Add this
+
 
 # ---------- LOAD ENV ----------
 load_dotenv()
@@ -39,7 +40,13 @@ llm = ChatGroq(
     temperature=0,
     api_key=os.getenv("GROQ_API_KEY")
 )
-search_tool = DuckDuckGoSearchRun()
+
+def google_search(query, num=10):
+    try:
+        return "\n".join(search(query, num_results=num))
+    except Exception as e:
+        return f"Search error: {e}"
+
 
 # ---------- HEADER ----------
 st.markdown("<div class='title-text'>🧠 KnowBuddy</div>", unsafe_allow_html=True)
@@ -49,6 +56,7 @@ st.markdown("<div class='subtitle-text'>Student-Focused AI Research Assistant</d
 tab1, tab2, tab3, tab4 = st.tabs(["🔍 Research", "✍️ Essay Builder", "📅 Time Table", "📉 Citation"])
 
 # ========== RESEARCH TOOL ==========
+
 with tab1:
     st.subheader("🔍 Research Summarizer")
     topic = st.text_input("📌 Enter your research topic", placeholder="e.g., Future of Space Travel")
@@ -56,7 +64,7 @@ with tab1:
     if st.button("🔍 Search & Summarize", use_container_width=True) and topic.strip():
         st.info(f"🔍 Searching for: **{topic}**")
         with st.spinner("Gathering articles..."):
-            results = search_tool.run(topic)
+            results = google_search(topic)
             time.sleep(1)
 
         st.markdown("### 📜 Raw Results")
@@ -73,6 +81,7 @@ with tab1:
         st.success("✅ Summary Ready:")
         for idx, item in enumerate(summary_list, 1):
             st.markdown(f"**{idx}.** {item}\n")
+
 
 # ========== ESSAY BUILDER ==========
 with tab2:
